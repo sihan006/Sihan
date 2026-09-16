@@ -39,3 +39,6 @@ yarn-error.log*
 /outputs/
 /work/
 .openai/
+!.openai/
+.openai/*
+!.openai/hosting.json
