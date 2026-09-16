@@ -1,3 +1,14 @@
+packages:
+  - '.'
+
+allowBuilds:
+  esbuild: true
+  sharp: true
+  workerd: true
+cat > pnpm-workspace.yaml <<'EOF'
+packages:
+  - '.'
+
 allowBuilds:
   esbuild: true
   sharp: true
