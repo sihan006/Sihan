@@ -69,6 +69,13 @@ function Header({ locale, current }: { locale: Locale; current: string }) {
   const t = copy[locale];
   const toggle = locale === "en" ? "zh" : "en";
   const [section, setSection] = useState("");
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const updateHeader = () => setScrolled(window.scrollY > 18);
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    return () => window.removeEventListener("scroll", updateHeader);
+  }, []);
   useEffect(() => {
     if (current !== "home") return;
     const update = () => {
@@ -80,7 +87,7 @@ function Header({ locale, current }: { locale: Locale; current: string }) {
     return () => window.removeEventListener("scroll", update);
   }, [current]);
   const suffix = current === "home" ? "" : `/${current}`;
-  return <header className="site-header"><a className="brand" href={toPath(locale)} aria-label="Sihan Wang home">Sihan <span>Wang</span></a><nav aria-label="Primary navigation"><a className={(current.startsWith("work") || section === "work") ? "active" : ""} href={current === "home" ? "#work" : toPath(locale, "work")}>{t.nav.work}</a><a className={section === "about" ? "active" : ""} href={`${current === "home" ? "" : toPath(locale)}#about`}>{locale === "zh" ? "关于" : "About"}</a><a className={(current === "experience" || section === "experience") ? "active" : ""} href={`${current === "home" ? "" : toPath(locale)}#experience`}>{t.nav.experience}</a></nav><div className="header-actions"><a className="locale-toggle" href={toPath(toggle, suffix.replace(/^\//, ""))}>{toggle.toUpperCase()}</a><a className="contact-dot" href="mailto:sihan006@e.ntu.edu.sg">{t.nav.contact}</a></div></header>;
+  return <header className={`site-header ${scrolled ? "is-scrolled" : ""}`}><a className="brand" href={toPath(locale)} aria-label="Sihan Wang home">Sihan <span>Wang</span></a><nav aria-label="Primary navigation"><a className={(current.startsWith("work") || section === "work") ? "active" : ""} href={current === "home" ? "#work" : toPath(locale, "work")}>{t.nav.work}</a><a className={section === "about" ? "active" : ""} href={`${current === "home" ? "" : toPath(locale)}#about`}>{locale === "zh" ? "关于" : "About"}</a><a className={(current === "experience" || section === "experience") ? "active" : ""} href={`${current === "home" ? "" : toPath(locale)}#experience`}>{t.nav.experience}</a></nav><div className="header-actions"><a className="locale-toggle" href={toPath(toggle, suffix.replace(/^\//, ""))}>{toggle.toUpperCase()}</a><a className="contact-dot" href="mailto:sihan006@e.ntu.edu.sg">{t.nav.contact}</a></div></header>;
 }
 
 const projectMedia: Record<string, { src: string; format: string; label: string }> = {
@@ -90,6 +97,24 @@ const projectMedia: Record<string, { src: string; format: string; label: string 
   tencent: { src: "tencent-media-research.jpg", format: "document", label: "Research · Strategy" },
   workbook: { src: "workbook-overview.png", format: "browser", label: "Information · Workflow" },
   "can-buy-lah": { src: "canbuy-product.png", format: "phone", label: "AI · Product · MVP" },
+};
+
+type CaseTheme = {
+  slug: Project["slug"];
+  texture: string;
+  textureCredit: string;
+  mark: string;
+};
+
+// The atmospheric layers are deliberately separate from the project evidence.
+// They are free web textures, while every card, interface and data point stays project-authentic.
+const caseThemes: Record<Project["slug"], CaseTheme> = {
+  dw: { slug: "dw", texture: "https://images.unsplash.com/photo-1770479314185-3bfe403e722c?auto=format&fit=crop&fm=jpg&q=72&w=2400", textureCredit: "Alexey O / Unsplash", mark: "TIDE / CONTENT" },
+  refrear: { slug: "refrear", texture: "https://images.unsplash.com/photo-1710988443691-eadf212ea183?auto=format&fit=crop&fm=jpg&q=72&w=2400", textureCredit: "Michael Dziedzic / Unsplash", mark: "FILTER / CREATOR" },
+  caa: { slug: "caa", texture: "https://images.unsplash.com/photo-1609039504401-47ac3940f378?auto=format&fit=crop&fm=jpg&q=72&w=2400", textureCredit: "Camille Roux / Unsplash", mark: "STAGE / EDITORIAL" },
+  tencent: { slug: "tencent", texture: "https://everytexture.com/wp-content/uploads/2020/11/everytexture.com-stock-digital-texture-00094.jpg", textureCredit: "EveryTexture", mark: "SIGNAL / MATRIX" },
+  workbook: { slug: "workbook", texture: "https://images.unsplash.com/photo-1689443111287-5c2e129ec756?auto=format&fit=crop&fm=jpg&q=72&w=2400", textureCredit: "Martin Martz / Unsplash", mark: "SYSTEM / INDEX" },
+  "can-buy-lah": { slug: "can-buy-lah", texture: "https://images.unsplash.com/photo-1776696003029-f5c155c594be?auto=format&fit=crop&fm=jpg&q=72&w=2400", textureCredit: "Hilly van Eerten / Unsplash", mark: "SCAN / DECIDE" },
 };
 
 function WorkShowcase({ locale }: { locale: Locale }) {
@@ -116,12 +141,14 @@ function Metrics({ items }: { items: { value: string; label: string }[] }) { ret
 
 function StarSection({ locale, kind, facts = [], children }: { locale: Locale; kind: keyof (typeof copy)["en"]["star"]; facts?: string[]; children: React.ReactNode }) {
   const letter = { situation: "S", task: "T", action: "A", result: "R" }[kind];
-  return <section id={`case-${kind}`} className={`star-section star-${kind}`}><div className="star-label"><span>{letter}</span><p>{copy[locale].star[kind]}</p></div><div className="star-body">{children}{facts.length > 0 && <ul className="star-facts">{facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>}</div></section>;
+  const order = { situation: "01", task: "02", action: "03", result: "04" }[kind];
+  return <section id={`case-${kind}`} className={`star-section star-${kind}`}><div className="star-label"><span>{letter}</span><p>{copy[locale].star[kind]}</p></div><div className="star-body"><span className="chapter-kicker">{order} / {letter} / {copy[locale].star[kind]}</span><div className="star-copy">{children}</div>{facts.length > 0 && <ul className="star-facts">{facts.map((fact, index) => <li key={fact}><em>{String(index + 1).padStart(2, "0")}</em>{fact}</li>)}</ul>}<span className="chapter-orbit" aria-hidden="true" /></div></section>;
 }
 
 function CaseProgress({ locale }: { locale: Locale }) {
   const items = caseKinds.map((kind) => ({ kind, letter: { situation: "S", task: "T", action: "A", result: "R" }[kind], label: copy[locale].star[kind] }));
   const [active, setActive] = useState(items[0].kind);
+
   useEffect(() => {
     const sections = caseKinds.map((kind) => document.getElementById(`case-${kind}`)).filter(Boolean) as HTMLElement[];
     const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) setActive(entry.target.id.replace("case-", "") as typeof active); }), { rootMargin: "-24% 0px -62% 0px" });
@@ -131,15 +158,15 @@ function CaseProgress({ locale }: { locale: Locale }) {
   return <nav className="case-progress" aria-label={locale === "zh" ? "项目阅读导航" : "Case-study navigation"}><a className="case-progress-top" href="#case-top" aria-label={locale === "zh" ? "返回项目顶部" : "Back to top"}>↑</a><ol>{items.map((item) => <li key={item.kind}><a className={active === item.kind ? "active" : ""} href={`#case-${item.kind}`} aria-label={item.label}><span>{item.letter}</span><b>{item.label}</b></a></li>)}</ol></nav>;
 }
 
-function CaseIntro({ locale, index, title, description, group }: { locale: Locale; index: string; title: string; description: string; group: "internship" | "independent" }) {
+function CaseIntro({ locale, index, title, description, group, theme }: { locale: Locale; index: string; title: string; description: string; group: "internship" | "independent"; theme: CaseTheme }) {
   const zh = locale === "zh";
-  const hero = projectMedia[projects[Number(index) - 1].slug];
-  return <><CaseProgress locale={locale} /><section id="case-top" className="case-intro"><div className="case-intro-copy"><a className="back-link" href={toPath(locale, "work")}>← {copy[locale].back}</a><p className="case-label">{index} / {group === "internship" ? (zh ? "实习项目" : "Internship work") : (zh ? "独立项目" : "Independent project")}</p><h1>{title}</h1><p>{description}</p><div className="case-intro-footer"><span>{zh ? "案例阅读" : "Case study"}</span><a href="#case-situation">{zh ? "开始阅读" : "Start reading"}<i aria-hidden="true">↓</i></a><span>S / T / A / R</span></div></div><div className={`case-hero-art media-${hero.format}`} aria-hidden="true"><span>{hero.label}</span><div className="case-hero-frame"><img src={img(hero.src)} alt="" /></div><i>{index}</i></div></section></>;
+  const hero = projectMedia[theme.slug];
+  return <><CaseProgress locale={locale} /><section id="case-top" className="case-intro" style={{ "--case-texture": `url("${theme.texture}")` } as React.CSSProperties}><div className="case-intro-copy"><a className="back-link" href={toPath(locale, "work")}>← {copy[locale].back}</a><p className="case-label">{index} / {group === "internship" ? (zh ? "实习项目" : "Internship work") : (zh ? "独立项目" : "Independent project")}</p><span className="case-mark">{theme.mark}</span><h1>{title}</h1><p>{description}</p><div className="case-intro-footer"><span>{zh ? "案例阅读" : "Case study"}</span><a href="#case-situation">{zh ? "开始阅读" : "Start reading"}<i aria-hidden="true">↓</i></a><span>{theme.textureCredit}</span></div></div><div className={`case-hero-art media-${hero.format}`} aria-hidden="true"><span>{hero.label}</span><div className="case-hero-frame"><img src={img(hero.src)} alt="" /></div><i>{index}</i></div></section></>;
 }
 
 function DWCase({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
-  return <main className="case-page case-dw"><CaseIntro locale={locale} index="01" group="internship" title="Daniel Wellington" description={zh ? "小红书多账号运营、内容趋势研究与月度数据分析。" : "Xiaohongshu multi-account operations, content trend research and monthly data analysis."} />
+  return <main className="case-page case-dw"><CaseIntro locale={locale} index="01" group="internship" theme={caseThemes.dw} title="Daniel Wellington" description={zh ? "小红书多账号运营、内容趋势研究与月度数据分析。" : "Xiaohongshu multi-account operations, content trend research and monthly data analysis."} />
     <StarSection locale={locale} kind="situation" facts={zh ? ["3 个小红书账号", "新品、520、618", "同步公众号"] : ["3 Xiaohongshu accounts", "New product, 520, 618", "WeChat alignment"]}><p>{zh ? "为三个小红书账号和公众号 Campaign 建立不重复、但一致的北欧年轻化内容表达。" : "Create a Nordic, youthful content system that stays consistent without repeating across three Xiaohongshu accounts and WeChat campaigns."}</p></StarSection>
     <StarSection locale={locale} kind="task" facts={zh ? ["趋势与选题", "月度内容规划", "发布与复盘"] : ["Trends & topics", "Monthly planning", "Publishing & review"]}><p>{zh ? "负责从趋势研究、选品选题到 Brief、文案、发布和月度数据复盘的完整小红书流程。" : "Own the Xiaohongshu workflow from trend research and topics to briefs, copy, publishing and monthly review."}</p></StarSection>
     <StarSection locale={locale} kind="action" facts={zh ? ["账号定位", "场景化表达", "Excel 横向比较"] : ["Account positioning", "Situational storytelling", "Excel comparisons"]}><p>{zh ? "结合产品、热点与趋势定选题，再按账号定位改写角度；用场景和搭配讲产品，并以月度数据调整形式与标题。" : "Build topics from products, trends and platform moments; adapt the angle per account, tell product stories through scenes, then refine formats and titles with monthly data."}</p></StarSection>
@@ -151,7 +178,7 @@ function DWCase({ locale }: { locale: Locale }) {
 
 function RefrearCase({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
-  return <main className="case-page case-refrear"><CaseIntro locale={locale} index="02" group="internship" title="Refrear" description={zh ? "美瞳品牌小红书 KOL 筛选、达人 Brief 与投后复盘。" : "Xiaohongshu KOL selection, creator briefing and post-campaign review for a colour-contact-lens brand."} />
+  return <main className="case-page case-refrear"><CaseIntro locale={locale} index="02" group="internship" theme={caseThemes.refrear} title="Refrear" description={zh ? "美瞳品牌小红书 KOL 筛选、达人 Brief 与投后复盘。" : "Xiaohongshu KOL selection, creator briefing and post-campaign review for a colour-contact-lens brand."} />
     <StarSection locale={locale} kind="situation" facts={zh ? ["自然妆感", "生活化内容", "品牌与受众匹配"] : ["Natural makeup", "Everyday content", "Brand–audience fit"]}><p>{zh ? "为美瞳品牌寻找自然、生活化的达人；粉丝量之外，还要看调性、受众、互动与成本。" : "Find natural, everyday creators for a colour-contact-lens brand, balancing tone, audience, engagement and cost beyond follower count."}</p></StarSection>
     <StarSection locale={locale} kind="task" facts={zh ? ["筛选与推荐", "达人跟进", "Brief 与复盘"] : ["Selection & recommendations", "Creator follow-up", "Briefs & review"]}><p>{zh ? "在 mentor 与品牌评审流程中，完成达人筛选、推荐、沟通、内容 Brief 和投后数据回收。" : "Within mentor and client review, deliver creator selection, recommendations, outreach, briefs and post-campaign data collection."}</p></StarSection>
     <StarSection locale={locale} kind="action" facts={zh ? ["粉丝画像", "内容调性", "互动与 CPE"] : ["Audience profile", "Content tone", "Engagement & CPE"]}><p>{zh ? "先排除风格不符的账号，再将受众、互动、报价和商业笔记表现整理进达人库，按“画像 → 调性 → 表现与成本”筛选。" : "Remove off-tone accounts first, then structure audience, engagement, price and commercial-post data in a creator database, screening by audience → tone → performance and cost."}</p></StarSection>
@@ -162,7 +189,7 @@ function RefrearCase({ locale }: { locale: Locale }) {
 
 function CAACase({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
-  return <main className="case-page case-caa"><CaseIntro locale={locale} index="03" group="internship" title="CAA China" description={zh ? "CAA Campaign 公众号文章结构、文案撰写与排版。" : "WeChat article structure, copywriting and typesetting for CAA Campaign content."} />
+  return <main className="case-page case-caa"><CaseIntro locale={locale} index="03" group="internship" theme={caseThemes.caa} title="CAA China" description={zh ? "CAA Campaign 公众号文章结构、文案撰写与排版。" : "WeChat article structure, copywriting and typesetting for CAA Campaign content."} />
     <StarSection locale={locale} kind="situation" facts={zh ? ["Campaign 主题", "艺人素材", "公众号阅读场景"] : ["Campaign theme", "Talent materials", "WeChat reading context"]}><p>{zh ? "把 Campaign 主题、艺人素材和传播重点整理成一条清晰的公众号阅读路径。" : "Shape campaign themes, talent materials and key messages into a clear WeChat reading journey."}</p></StarSection>
     <StarSection locale={locale} kind="task" facts={zh ? ["文章结构", "文案撰写", "页面排版"] : ["Article structure", "Copywriting", "Page typesetting"]}><p>{zh ? "参与内容策划，负责文章结构、文字表达与页面排版。" : "Contribute to content planning through structure, copy and page typesetting."}</p></StarSection>
     <StarSection locale={locale} kind="action" facts={zh ? ["标题 → 导语", "信息层级", "图文节奏"] : ["Headline → lead", "Information hierarchy", "Text-image rhythm"]}><p>{zh ? "先确定标题与导语，再安排信息优先级和图文节奏，让艺人、活动与品牌表达连续展开。" : "Set the headline and lead first, then shape hierarchy and text-image rhythm so talent, activity and brand messages unfold naturally."}</p></StarSection>
@@ -173,7 +200,7 @@ function CAACase({ locale }: { locale: Locale }) {
 
 function TencentCase({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
-  return <main className="case-page case-tencent"><CaseIntro locale={locale} index="04" group="internship" title={zh ? "腾讯汽车新媒体矩阵调研" : "Tencent Automotive Media Matrix Research"} description={zh ? "为一汽丰田中国市场的新媒体运营讨论提供行业比较和内容方向参考。" : "A comparative study to support new-media discussions for FAW Toyota China."} />
+  return <main className="case-page case-tencent"><CaseIntro locale={locale} index="04" group="internship" theme={caseThemes.tencent} title={zh ? "腾讯汽车新媒体矩阵调研" : "Tencent Automotive Media Matrix Research"} description={zh ? "为一汽丰田中国市场的新媒体运营讨论提供行业比较和内容方向参考。" : "A comparative study to support new-media discussions for FAW Toyota China."} />
     <StarSection locale={locale} kind="situation" facts={zh ? ["一汽丰田中国市场", "公域与私域", "渠道与内容比较"] : ["FAW Toyota China", "Public & private channels", "Channel-content comparison"]}><p>{zh ? "为一汽丰田的新媒体讨论梳理国内外汽车品牌的渠道布局、内容表现与用户触点。" : "Map channel architecture, content performance and audience touchpoints across automotive brands for FAW Toyota’s new-media discussion."}</p></StarSection>
     <StarSection locale={locale} kind="task" facts={zh ? ["行业研究", "信息结构化", "建议输入"] : ["Industry research", "Information structure", "Recommendation inputs"]}><p>{zh ? "完成研究与信息结构化，为项目汇报提供统一的行业比较框架。" : "Deliver research and structured inputs for a unified comparison framework in the project deck."}</p></StarSection>
     <StarSection locale={locale} kind="action" facts={zh ? ["10+ 家车企", "8 个重点公域平台", "官网、App、小程序"] : ["10+ automotive brands", "8 key public platforms", "Website, app, mini-program"]}><p>{zh ? "从账号矩阵、平台分工、内容、活跃度和受众等维度研究 10+ 家车企，并比较公域与私域的触达方式。" : "Study 10+ automotive brands across account architecture, platform roles, content, activity and audiences, comparing public and private touchpoints."}</p></StarSection>
@@ -185,7 +212,7 @@ function TencentCase({ locale }: { locale: Locale }) {
 
 function WorkbookCase({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
-  return <main className="case-page case-workbook"><CaseIntro locale={locale} index="05" group="independent" title={zh ? "秋招信息工作台" : "Graduate Recruitment Workbook"} description={zh ? "把岗位、申请、简历版本与复盘整理成可持续使用的个人系统。" : "A personal system for opportunities, applications, resume versions and retrospective learning."} />
+  return <main className="case-page case-workbook"><CaseIntro locale={locale} index="05" group="independent" theme={caseThemes.workbook} title={zh ? "秋招信息工作台" : "Graduate Recruitment Workbook"} description={zh ? "把岗位、申请、简历版本与复盘整理成可持续使用的个人系统。" : "A personal system for opportunities, applications, resume versions and retrospective learning."} />
     <StarSection locale={locale} kind="situation" facts={zh ? ["岗位来源", "申请进度", "简历与复盘"] : ["Opportunity sources", "Application states", "Resumes & review"]}><p>{zh ? "求职信息分散在不同文件和页面，申请状态、准备进度与简历版本难以持续追踪。" : "Job-search information spreads across files and pages, making applications, preparation and resume versions difficult to track."}</p></StarSection>
     <StarSection locale={locale} kind="task" facts={zh ? ["记录", "检索", "比较与复用"] : ["Record", "Search", "Compare & reuse"]}><p>{zh ? "独立设计一个能记录、检索、比较并复用求职信息的个人工作台。" : "Design an independent workspace that records, searches, compares and reuses job-search information."}</p></StarSection>
     <StarSection locale={locale} kind="action" facts={zh ? ["岗位池", "申请追踪", "简历版本与复盘"] : ["Opportunity pool", "Application tracking", "Resume versions & review"]}><p>{zh ? "以统一字段连接岗位、申请、简历和复盘模块，并用明确状态与下一步动作串起整个准备过程。" : "Connect opportunities, applications, resumes and review through shared fields, clear states and explicit next actions."}</p></StarSection>
@@ -196,7 +223,7 @@ function WorkbookCase({ locale }: { locale: Locale }) {
 
 function CanBuyCase({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
-  return <main className="case-page case-canbuy"><CaseIntro locale={locale} index="06" group="independent" title="Can Buy Lah" description={zh ? "面向新加坡线下购物场景的 AI 辅助商品理解与比价 MVP。" : "An AI-assisted product-understanding and price-comparison MVP for in-store shopping in Singapore."} />
+  return <main className="case-page case-canbuy"><CaseIntro locale={locale} index="06" group="independent" theme={caseThemes["can-buy-lah"]} title="Can Buy Lah" description={zh ? "面向新加坡线下购物场景的 AI 辅助商品理解与比价 MVP。" : "An AI-assisted product-understanding and price-comparison MVP for in-store shopping in Singapore."} />
     <StarSection locale={locale} kind="situation" facts={zh ? ["英文包装", "陌生品牌", "价格与口碑分散"] : ["English packaging", "Unfamiliar brands", "Fragmented price & reviews"]}><p>{zh ? "中文用户在新加坡线下购物时，常需在翻译、搜索、电商与社媒之间来回切换，才能判断商品。" : "Chinese-speaking shoppers in Singapore switch among translation, search, marketplaces and social platforms before they can judge a product."}</p></StarSection>
     <StarSection locale={locale} kind="task" facts={zh ? ["问题拆解", "AI 输出规则", "可访问 MVP"] : ["Problem mapping", "AI output rules", "Accessible MVP"]}><p>{zh ? "独立完成从用户问题、产品流程和 AI 输出规则，到异常 Case 回查与 MVP 设计。" : "Independently take the product from user-problem mapping and AI output rules to error-case review and an accessible MVP."}</p></StarSection>
     <StarSection locale={locale} kind="action" facts={zh ? ["拍照 → 购买判断", "三级匹配规则", "价格优先级"] : ["Capture → purchase decision", "Three-tier matching", "Price priority"]}><p>{zh ? "把流程重构为“拍照—识别—检索—解读—比价—判断”，并为规格、口味与优惠价建立三级匹配规则。" : "Rebuild the journey as capture → identify → search → understand → compare → decide, with three-tier matching for size, flavour and promotional-price edge cases."}</p></StarSection>
@@ -242,6 +269,7 @@ export default function Portfolio({ locale, page }: { locale: Locale; page: stri
     return () => { observer?.disconnect(); preference.removeEventListener("change", setup); };
   }, [page, locale]);
   const current = page === "about" ? "home" : page;
+  const caseSlug = page.startsWith("work/") ? page.replace("work/", "").replace("can-buy-lah", "canbuy") : "";
   let body: React.ReactNode;
   if (page === "home" || page === "about") body = <Home locale={locale} />;
   else if (page === "work") body = <WorkIndex locale={locale} />;
@@ -253,5 +281,5 @@ export default function Portfolio({ locale, page }: { locale: Locale; page: stri
   else if (page === "work/can-buy-lah") body = <CanBuyCase locale={locale} />;
   else if (page === "experience") body = <Experience locale={locale} />;
   else body = <Home locale={locale} />;
-  return <div ref={root} className={`portfolio locale-${locale}`} lang={locale === "zh" ? "zh-CN" : "en"}><Header locale={locale} current={current} />{body}<footer><span>© 2026 Sihan Wang</span><a href="mailto:sihan006@e.ntu.edu.sg">sihan006@e.ntu.edu.sg</a></footer></div>;
+  return <div ref={root} className={`portfolio locale-${locale} ${caseSlug ? `case-shell case-${caseSlug}` : ""}`} lang={locale === "zh" ? "zh-CN" : "en"}><Header locale={locale} current={current} />{body}<footer><span>© 2026 Sihan Wang</span><a href="mailto:sihan006@e.ntu.edu.sg">sihan006@e.ntu.edu.sg</a></footer></div>;
 }
