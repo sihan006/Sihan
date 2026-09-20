@@ -34,6 +34,8 @@ const copy = {
   },
 } as const;
 
+const caseKinds = ["situation", "task", "action", "result"] as const;
+
 const projects: Project[] = [
   { slug: "dw", index: "01", group: "internship", title: { en: "Xiaohongshu Multi-account Operations", zh: "小红书多账号运营与数据分析" }, subtitle: { en: "Daniel Wellington · Content & data review", zh: "Daniel Wellington" } },
   { slug: "refrear", index: "02", group: "internship", title: { en: "KOL Selection, Briefs & Post-campaign Review", zh: "美瞳品牌 KOL 筛选、Brief 与投后复盘" }, subtitle: { en: "Refrear", zh: "Refrear" } },
@@ -114,12 +116,24 @@ function Metrics({ items }: { items: { value: string; label: string }[] }) { ret
 
 function StarSection({ locale, kind, facts = [], children }: { locale: Locale; kind: keyof (typeof copy)["en"]["star"]; facts?: string[]; children: React.ReactNode }) {
   const letter = { situation: "S", task: "T", action: "A", result: "R" }[kind];
-  return <section className={`star-section star-${kind}`}><div className="star-label"><span>{letter}</span><p>{copy[locale].star[kind]}</p></div><div className="star-body">{children}{facts.length > 0 && <ul className="star-facts">{facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>}</div></section>;
+  return <section id={`case-${kind}`} className={`star-section star-${kind}`}><div className="star-label"><span>{letter}</span><p>{copy[locale].star[kind]}</p></div><div className="star-body">{children}{facts.length > 0 && <ul className="star-facts">{facts.map((fact) => <li key={fact}>{fact}</li>)}</ul>}</div></section>;
+}
+
+function CaseProgress({ locale }: { locale: Locale }) {
+  const items = caseKinds.map((kind) => ({ kind, letter: { situation: "S", task: "T", action: "A", result: "R" }[kind], label: copy[locale].star[kind] }));
+  const [active, setActive] = useState(items[0].kind);
+  useEffect(() => {
+    const sections = caseKinds.map((kind) => document.getElementById(`case-${kind}`)).filter(Boolean) as HTMLElement[];
+    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) setActive(entry.target.id.replace("case-", "") as typeof active); }), { rootMargin: "-24% 0px -62% 0px" });
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [locale]);
+  return <nav className="case-progress" aria-label={locale === "zh" ? "项目阅读导航" : "Case-study navigation"}><a className="case-progress-top" href="#case-top" aria-label={locale === "zh" ? "返回项目顶部" : "Back to top"}>↑</a><ol>{items.map((item) => <li key={item.kind}><a className={active === item.kind ? "active" : ""} href={`#case-${item.kind}`} aria-label={item.label}><span>{item.letter}</span><b>{item.label}</b></a></li>)}</ol></nav>;
 }
 
 function CaseIntro({ locale, index, title, description, group }: { locale: Locale; index: string; title: string; description: string; group: "internship" | "independent" }) {
   const zh = locale === "zh";
-  return <section className="case-intro"><a className="back-link" href={toPath(locale, "work")}>← {copy[locale].back}</a><p className="case-label">{index} / {group === "internship" ? (zh ? "实习项目" : "Internship work") : (zh ? "独立项目" : "Independent project")}</p><h1>{title}</h1><p>{description}</p></section>;
+  return <><CaseProgress locale={locale} /><section id="case-top" className="case-intro"><a className="back-link" href={toPath(locale, "work")}>← {copy[locale].back}</a><p className="case-label">{index} / {group === "internship" ? (zh ? "实习项目" : "Internship work") : (zh ? "独立项目" : "Independent project")}</p><h1>{title}</h1><p>{description}</p><div className="case-intro-footer"><span>{zh ? "案例阅读" : "Case study"}</span><a href="#case-situation">{zh ? "开始阅读" : "Start reading"}<i aria-hidden="true">↓</i></a><span>S / T / A / R</span></div></section></>;
 }
 
 function DWCase({ locale }: { locale: Locale }) {
