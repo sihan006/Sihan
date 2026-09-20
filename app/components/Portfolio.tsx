@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Locale = "en" | "zh";
 type Project = {
@@ -46,13 +46,17 @@ const projects: Project[] = [
 function toPath(locale: Locale, path = "") { return `/${locale}${path ? `/${path}` : ""}`; }
 
 function ImageButton({ src, alt }: { src: string; alt: string }) {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    const close = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
-  }, []);
-  return <><button className="media-button" onClick={() => setOpen(true)} aria-label={`Open ${alt}`}><img src={img(src)} alt={alt} /></button>{open && <div className="lightbox" role="dialog" aria-modal="true" aria-label={alt} onClick={() => setOpen(false)}><button className="lightbox-close" onClick={() => setOpen(false)} aria-label="Close image">×</button><img src={img(src)} alt={alt} onClick={(event) => event.stopPropagation()} /></div>}</>;
+  const dialog = useRef<HTMLDialogElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [closing, setClosing] = useState(false);
+  const close = () => {
+    if (timer.current) return;
+    setClosing(true);
+    timer.current = setTimeout(() => { dialog.current?.close(); setClosing(false); timer.current = null; }, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 180);
+  };
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); document.body.style.overflow = ""; }, []);
+  return <><button ref={trigger} className="media-button" onClick={() => { dialog.current?.showModal(); document.body.style.overflow = "hidden"; }} aria-label={`Open ${alt}`}><img src={img(src)} alt={alt} loading="lazy" /></button><dialog ref={dialog} className={`image-dialog ${closing ? "is-closing" : ""}`} aria-label={alt} onCancel={(event) => { event.preventDefault(); close(); }} onClose={() => { document.body.style.overflow = ""; trigger.current?.focus(); }}><button className="lightbox-close" onClick={close} aria-label="Close image / 关闭图片">×</button><img src={img(src)} alt={alt} loading="lazy" /><p>{alt}</p></dialog></>;
 }
 
 function Visual({ src, alt, caption, variant = "landscape" }: { src: string; alt: string; caption: string; variant?: "portrait" | "landscape" | "phone" | "document" }) {
@@ -62,13 +66,34 @@ function Visual({ src, alt, caption, variant = "landscape" }: { src: string; alt
 function Header({ locale, current }: { locale: Locale; current: string }) {
   const t = copy[locale];
   const toggle = locale === "en" ? "zh" : "en";
+  const [section, setSection] = useState("");
+  useEffect(() => {
+    if (current !== "home") return;
+    const update = () => {
+      const ids = ["work", "about", "experience"];
+      const active = ids.filter((id) => (document.getElementById(id)?.getBoundingClientRect().top ?? Infinity) <= 160).pop();
+      setSection(active || "");
+    };
+    window.addEventListener("scroll", update, { passive: true }); update();
+    return () => window.removeEventListener("scroll", update);
+  }, [current]);
   const suffix = current === "home" ? "" : `/${current}`;
-  const experienceHref = current === "home" ? "#experience" : `${toPath(locale)}#experience`;
-  return <header className="site-header"><a className="brand" href={toPath(locale)} aria-label="Sihan Wang home">Sihan <span>Wang</span></a><nav aria-label="Primary navigation"><a className={current.startsWith("work") ? "active" : ""} href={toPath(locale, "work")}>{t.nav.work}</a><a className={current === "experience" ? "active" : ""} href={experienceHref}>{t.nav.experience}</a></nav><div className="header-actions"><a className="locale-toggle" href={toPath(toggle, suffix.replace(/^\//, ""))}>{toggle.toUpperCase()}</a><a className="contact-dot" href="mailto:sihan006@e.ntu.edu.sg">{t.nav.contact}</a></div></header>;
+  return <header className="site-header"><a className="brand" href={toPath(locale)} aria-label="Sihan Wang home">Sihan <span>Wang</span></a><nav aria-label="Primary navigation"><a className={(current.startsWith("work") || section === "work") ? "active" : ""} href={current === "home" ? "#work" : toPath(locale, "work")}>{t.nav.work}</a><a className={section === "about" ? "active" : ""} href={`${current === "home" ? "" : toPath(locale)}#about`}>{locale === "zh" ? "关于" : "About"}</a><a className={(current === "experience" || section === "experience") ? "active" : ""} href={`${current === "home" ? "" : toPath(locale)}#experience`}>{t.nav.experience}</a></nav><div className="header-actions"><a className="locale-toggle" href={toPath(toggle, suffix.replace(/^\//, ""))}>{toggle.toUpperCase()}</a><a className="contact-dot" href="mailto:sihan006@e.ntu.edu.sg">{t.nav.contact}</a></div></header>;
 }
 
-function ProjectLink({ project, locale }: { project: Project; locale: Locale }) {
-  return <a className="project-link" href={toPath(locale, `work/${project.slug}`)}><span className="project-number">{project.index}</span><div><h3>{project.title[locale]}</h3><p>{project.subtitle[locale]}</p></div><span className="project-arrow">↗</span></a>;
+const projectMedia: Record<string, { src: string; format: string; label: string }> = {
+  dw: { src: "dw-ice-blue-post.jpg", format: "phone", label: "Content · Social · Data" },
+  refrear: { src: "refrear-style-brief.png", format: "document", label: "Creators · Brief · Review" },
+  caa: { src: "caa-sarah-brightman.png", format: "document", label: "Editorial · WeChat" },
+  tencent: { src: "tencent-media-research.jpg", format: "document", label: "Research · Strategy" },
+  workbook: { src: "workbook-overview.png", format: "browser", label: "Information · Workflow" },
+  "can-buy-lah": { src: "canbuy-product.png", format: "phone", label: "AI · Product · MVP" },
+};
+
+function WorkShowcase({ locale }: { locale: Locale }) {
+  const [active, setActive] = useState(projects[0].slug);
+  const selected = projects.find((p) => p.slug === active)!;
+  return <section id="work" className="work-showcase"><div className="work-heading" data-reveal><div><p className="eyebrow">Selected work / 2026</p><h2>{copy[locale].work}<span className="work-count">(06)</span></h2></div><p>{locale === "zh" ? "内容、研究与数字化实践" : "Content, research & digital practice"}</p></div><div className="work-editorial"><div className="work-directory">{projects.map((project, i) => <div key={project.slug}>{(i === 0 || i === 4) && <p className="directory-label">{i === 0 ? copy[locale].internship : copy[locale].independent}</p>}<a className={`editorial-project ${active === project.slug ? "is-active" : ""}`} href={toPath(locale, `work/${project.slug}`)} onMouseEnter={() => setActive(project.slug)} onFocus={() => setActive(project.slug)}><span className="project-number">{project.index}</span><div><p>{project.subtitle[locale]}</p><h3>{project.title[locale]}</h3></div><span className="project-arrow" aria-hidden="true">↗</span><div className={`mobile-project-media media-${projectMedia[project.slug].format}`}><img src={img(projectMedia[project.slug].src)} alt="" loading="lazy" /></div></a></div>)}</div><div className="work-preview"><a href={toPath(locale, `work/${selected.slug}`)} aria-label={`${copy[locale].work}: ${selected.title[locale]}`}><div className="preview-stage">{projects.map((p) => <div key={p.slug} className={`preview-layer media-${projectMedia[p.slug].format} ${active === p.slug ? "is-active" : ""}`} aria-hidden={active !== p.slug}><img src={img(projectMedia[p.slug].src)} alt={p.title[locale]} loading="lazy" /></div>)}<span className="preview-corner" aria-hidden="true">↗</span></div><div className="preview-caption"><span>{selected.index} / {selected.subtitle[locale]}</span><span>{projectMedia[selected.slug].label}</span></div></a></div></div></section>;
 }
 
 function MediterraneanBoat() {
@@ -166,15 +191,12 @@ function CanBuyCase({ locale }: { locale: Locale }) {
   </main>;
 }
 
-function WorkIndex({ locale }: { locale: Locale }) {
-  const t = copy[locale];
-  return <main className="page-shell work-index"><section className="page-heading"><p className="eyebrow">Portfolio / 2026</p><h1>{t.work}</h1><p>{locale === "zh" ? "六个项目，分为实习项目与独立项目。" : "Six projects across internships and independent work."}</p></section><section className="work-group"><div className="work-group-heading"><p className="eyebrow">01–04</p><h2>{t.internship}</h2></div><div>{projects.filter((project) => project.group === "internship").map((project) => <ProjectLink project={project} locale={locale} key={project.slug} />)}</div></section><section className="work-group"><div className="work-group-heading"><p className="eyebrow">05–06</p><h2>{t.independent}</h2></div><div>{projects.filter((project) => project.group === "independent").map((project) => <ProjectLink project={project} locale={locale} key={project.slug} />)}</div></section></main>;
-}
+function WorkIndex({ locale }: { locale: Locale }) { return <main><WorkShowcase locale={locale} /></main>; }
 
 function Home({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
   const skills = zh ? [{ label: "内容策略", kind: "strategy" }, { label: "达人与平台运营", kind: "operations" }, { label: "数据复盘", kind: "data" }, { label: "信息架构", kind: "architecture" }, { label: "AI 工具与工作流", kind: "ai" }, { label: "市场与竞品研究", kind: "research" }] : [{ label: "Content strategy", kind: "strategy" }, { label: "Creator & platform operations", kind: "operations" }, { label: "Data review", kind: "data" }, { label: "Information architecture", kind: "architecture" }, { label: "AI tools & workflows", kind: "ai" }, { label: "Market & competitor research", kind: "research" }];
-  return <main><section className="cover-screen" aria-label="Sihan Wang portfolio cover"><img src={img("portfolio-cover-v2.png")} alt="Sihan Wang portfolio cover" /><p>个人作品集</p></section><section className="home-about"><div className="home-about-layout"><div className="home-about-copy about-card"><MediterraneanBoat /><p className="eyebrow">Sihan Wang 王思涵 · Singapore</p><h1>About Sihan</h1><div className="about-prose"><p className="home-lead">{zh ? "Hi，我是思涵，MBTI 是 INFJ。目前就读于南洋理工大学黄金辉信息与传播学院知识管理硕士，本科毕业于武汉理工大学网络与新媒体专业。" : "Hi, I’m Sihan, an INFJ. I am currently pursuing an MSc in Knowledge Management at NTU’s Wee Kim Wee School of Communication and Information, after completing a degree in Network and New Media at Wuhan University of Technology."}</p><p>{zh ? "我的实习经历主要聚焦内容运营、达人与用户运营、数据复盘和行业研究：从多账号内容规划与 KOL 筛选，到新媒体矩阵调研、跨部门项目推进，我习惯把复杂信息整理成清晰的下一步。学习和实习让我不断积累新的能力；我始终相信，认真走的每一步都会让人更接近想成为的自己。" : "My internship experience centres on content operations, creator and user operations, data review and industry research. From multi-account content planning and KOL selection to media-matrix research and cross-functional project delivery, I enjoy turning complex information into a clearer next step. Learning and practice keep adding to my toolkit, and I believe steady effort gets me closer to the person I want to become."}</p></div></div><div className="home-photo"><img src={img("sihan-portrait-lucerne.jpg")} alt="Sihan Wang in Lucerne" /><span>Lucerne, Switzerland</span></div></div><section className="home-skills"><p className="eyebrow">{zh ? "能力方向" : "Capabilities"}</p><div>{skills.map((skill) => <span key={skill.label}><SkillIcon kind={skill.kind} /><b>{skill.label}</b></span>)}</div></section></section><section id="experience" className="page-shell experience-page home-experience"><ExperienceContent locale={locale} /></section><section className="home-work"><div className="section-heading"><div><p className="eyebrow">Portfolio</p><h2>{zh ? "精选作品" : "Selected work"}</h2></div></div><section className="home-work-group"><div className="home-work-group-heading"><p className="eyebrow">01–04</p><h3>{zh ? "实习项目" : "Internship work"}</h3></div><div className="home-project-list">{projects.filter((project) => project.group === "internship").map((project) => <ProjectLink project={project} locale={locale} key={project.slug} />)}</div></section><section className="home-work-group"><div className="home-work-group-heading"><p className="eyebrow">05–06</p><h3>{zh ? "独立项目" : "Independent projects"}</h3></div><div className="home-project-list">{projects.filter((project) => project.group === "independent").map((project) => <ProjectLink project={project} locale={locale} key={project.slug} />)}</div></section></section></main>;
+  return <main><section className="cover-screen" aria-label="Sihan Wang portfolio cover"><img src={img("portfolio-cover-v2.png")} alt="Sihan Wang portfolio cover" /><p>个人作品集</p><a className="cover-explore" href="#work">{zh ? "浏览作品" : "Explore selected work"}<span aria-hidden="true">↓</span></a></section><WorkShowcase locale={locale} /><section id="about" className="home-about"><div className="home-about-layout"><div className="home-about-copy about-card" data-reveal><MediterraneanBoat /><p className="eyebrow">Sihan Wang 王思涵 · Singapore</p><h1>About Sihan</h1><div className="about-prose"><p className="home-lead">{zh ? "Hi，我是思涵，MBTI 是 INFJ。目前就读于南洋理工大学黄金辉信息与传播学院知识管理硕士，本科毕业于武汉理工大学网络与新媒体专业。" : "Hi, I’m Sihan, an INFJ. I am currently pursuing an MSc in Knowledge Management at NTU’s Wee Kim Wee School of Communication and Information, after completing a degree in Network and New Media at Wuhan University of Technology."}</p><p>{zh ? "我的实习经历主要聚焦内容运营、达人与用户运营、数据复盘和行业研究：从多账号内容规划与 KOL 筛选，到新媒体矩阵调研、跨部门项目推进，我习惯把复杂信息整理成清晰的下一步。学习和实习让我不断积累新的能力；我始终相信，认真走的每一步都会让人更接近想成为的自己。" : "My internship experience centres on content operations, creator and user operations, data review and industry research. From multi-account content planning and KOL selection to media-matrix research and cross-functional project delivery, I enjoy turning complex information into a clearer next step. Learning and practice keep adding to my toolkit, and I believe steady effort gets me closer to the person I want to become."}</p></div></div><div className="home-photo" data-reveal><img src={img("sihan-portrait-lucerne.jpg")} alt="Sihan Wang in Lucerne" /><span>Lucerne, Switzerland</span></div></div><section className="home-skills"><p className="eyebrow">{zh ? "能力方向" : "Capabilities"}</p><div>{skills.map((skill) => <span key={skill.label}><SkillIcon kind={skill.kind} /><b>{skill.label}</b></span>)}</div></section></section><section id="experience" className="page-shell experience-page home-experience"><ExperienceContent locale={locale} /></section></main>;
 }
 
 function ExperienceContent({ locale }: { locale: Locale }) {
@@ -187,6 +209,23 @@ function Experience({ locale }: { locale: Locale }) {
 }
 
 export default function Portfolio({ locale, page }: { locale: Locale; page: string }) {
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let observer: IntersectionObserver | undefined;
+    const nodes = Array.from(root.current?.querySelectorAll<HTMLElement>("[data-reveal], .experience-list article, .star-section, .evidence-heading, .case-visual") ?? []);
+    const setup = () => {
+      observer?.disconnect();
+      nodes.forEach((node) => node.classList.remove("reveal-pending"));
+      if (preference.matches || !("IntersectionObserver" in window)) return;
+      observer = new IntersectionObserver((entries) => entries.forEach((entry) => {
+        if (entry.isIntersecting) { entry.target.classList.remove("reveal-pending"); entry.target.classList.add("reveal-visible"); observer?.unobserve(entry.target); }
+      }), { threshold: 0.08 });
+      nodes.forEach((node) => { node.classList.add("reveal-item"); if (node.getBoundingClientRect().top > window.innerHeight) node.classList.add("reveal-pending"); observer?.observe(node); });
+    };
+    setup(); preference.addEventListener("change", setup);
+    return () => { observer?.disconnect(); preference.removeEventListener("change", setup); };
+  }, [page, locale]);
   const current = page === "about" ? "home" : page;
   let body: React.ReactNode;
   if (page === "home" || page === "about") body = <Home locale={locale} />;
@@ -199,5 +238,5 @@ export default function Portfolio({ locale, page }: { locale: Locale; page: stri
   else if (page === "work/can-buy-lah") body = <CanBuyCase locale={locale} />;
   else if (page === "experience") body = <Experience locale={locale} />;
   else body = <Home locale={locale} />;
-  return <div className={`portfolio locale-${locale}`} lang={locale === "zh" ? "zh-CN" : "en"}><Header locale={locale} current={current} />{body}<footer><span>© 2026 Sihan Wang</span><a href="mailto:sihan006@e.ntu.edu.sg">sihan006@e.ntu.edu.sg</a></footer></div>;
+  return <div ref={root} className={`portfolio locale-${locale}`} lang={locale === "zh" ? "zh-CN" : "en"}><Header locale={locale} current={current} />{body}<footer><span>© 2026 Sihan Wang</span><a href="mailto:sihan006@e.ntu.edu.sg">sihan006@e.ntu.edu.sg</a></footer></div>;
 }
