@@ -234,7 +234,9 @@ function CanBuyCase({ locale }: { locale: Locale }) {
 
 function WorkIndex({ locale }: { locale: Locale }) { return <main><WorkShowcase locale={locale} /></main>; }
 
-function Home({ locale }: { locale: Locale }) {
+// Retained only while the prior layout is kept in source history for comparison.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function LegacyHome({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
   const skills = zh ? [{ label: "内容策略", detail: "来自 DW 与 CAA：梳理 Brief、标题与阅读节奏。", kind: "strategy" }, { label: "达人与平台运营", detail: "来自 Refrear：筛选达人、对齐 Brief 并完成投后回收。", kind: "operations" }, { label: "数据复盘", detail: "来自 DW 月度复盘：比较点击、互动与粉丝趋势。", kind: "data" }, { label: "信息架构", detail: "来自求职工作台：连接岗位、进度、简历与复盘。", kind: "architecture" }, { label: "AI 工具与工作流", detail: "来自 Can Buy Lah：把识别、检索与判断串成流程。", kind: "ai" }, { label: "市场与竞品研究", detail: "来自腾讯调研：比较品牌矩阵与内容方向。", kind: "research" }] : [{ label: "Content strategy", detail: "DW & CAA: shaped briefs, headlines and reading rhythm.", kind: "strategy" }, { label: "Creator & platform operations", detail: "Refrear: selected creators, aligned briefs and collected reviews.", kind: "operations" }, { label: "Data review", detail: "DW monthly review: compared click-through, engagement and growth.", kind: "data" }, { label: "Information architecture", detail: "Graduate workbook: connected roles, applications, resumes and review.", kind: "architecture" }, { label: "AI tools & workflows", detail: "Can Buy Lah: linked recognition, retrieval and purchase judgement.", kind: "ai" }, { label: "Market & competitor research", detail: "Tencent research: compared media matrices and content direction.", kind: "research" }];
   const movePhoto = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -247,6 +249,38 @@ function Home({ locale }: { locale: Locale }) {
   };
   const resetPhoto = (event: React.MouseEvent<HTMLDivElement>) => { event.currentTarget.style.removeProperty("--photo-x"); event.currentTarget.style.removeProperty("--photo-y"); };
   return <main><section className="cover-screen" aria-label="Sihan Wang portfolio cover"><img src={img("portfolio-cover-v2.png")} alt="Sihan Wang portfolio cover" /><p>个人作品集</p><a className="cover-explore" href="#work">{zh ? "浏览作品" : "Explore selected work"}<span aria-hidden="true">↓</span></a></section><WorkShowcase locale={locale} /><section id="about" className="home-about"><span className="about-stamp" aria-hidden="true">SIN · LUCERNE<br />01°17′N / 8°18′E</span><span className="about-route" aria-hidden="true" /><div className="home-about-layout"><div className="home-about-copy about-card" data-reveal><MediterraneanBoat /><p className="eyebrow" data-about-part>Sihan Wang 王思涵 · Singapore</p><h1 data-about-part>About Sihan</h1><div className="about-prose" data-about-part><p className="home-lead">{zh ? "Hi，我是思涵，MBTI 是 INFJ。目前就读于南洋理工大学黄金辉信息与传播学院知识管理硕士，本科毕业于武汉理工大学网络与新媒体专业。" : "Hi, I’m Sihan, an INFJ. I am currently pursuing an MSc in Knowledge Management at NTU’s Wee Kim Wee School of Communication and Information, after completing a degree in Network and New Media at Wuhan University of Technology."}</p><p>{zh ? "我的实习经历主要聚焦内容运营、达人与用户运营、数据复盘和行业研究：从多账号内容规划与 KOL 筛选，到新媒体矩阵调研、跨部门项目推进，我习惯把复杂信息整理成清晰的下一步。学习和实习让我不断积累新的能力；我始终相信，认真走的每一步都会让人更接近想成为的自己。" : "My internship experience centres on content operations, creator and user operations, data review and industry research. From multi-account content planning and KOL selection to media-matrix research and cross-functional project delivery, I enjoy turning complex information into a clearer next step. Learning and practice keep adding to my toolkit, and I believe steady effort gets me closer to the person I want to become."}</p></div></div><div className="home-photo" data-reveal onMouseMove={movePhoto} onMouseLeave={resetPhoto}><span className="photo-paper photo-paper-back" aria-hidden="true" /><span className="photo-paper photo-paper-front" aria-hidden="true" /><img src={img("sihan-portrait-lucerne.jpg")} alt="Sihan Wang in Lucerne" /><span className="photo-index" aria-hidden="true">01 / PERSONAL ARCHIVE</span><span>Lucerne, Switzerland</span></div></div><section className="home-skills"><p className="eyebrow">{zh ? "能力方向" : "Capabilities"}</p><div>{skills.map((skill, index) => <button type="button" className="skill-card" key={skill.label}><span className="skill-order">0{index + 1}</span><SkillIcon kind={skill.kind} /><b>{skill.label}</b><p>{skill.detail}</p></button>)}</div></section></section><section id="experience" className="page-shell experience-page home-experience"><ExperienceContent locale={locale} /></section></main>;
+}
+
+function Home({ locale }: { locale: Locale }) {
+  const zh = locale === "zh";
+  const skills = zh ? [
+    { label: "内容策略", detail: "DW 与 CAA：参与 Brief、标题与阅读节奏梳理。", kind: "strategy" },
+    { label: "达人与平台运营", detail: "Refrear：筛选达人、对齐 Brief、回收投后数据。", kind: "operations" },
+    { label: "数据复盘", detail: "DW 月度复盘：比较点击、互动与粉丝趋势。", kind: "data" },
+    { label: "信息架构", detail: "求职工作台：连接岗位、进度、简历与复盘。", kind: "architecture" },
+    { label: "AI 工具与工作流", detail: "Can Buy Lah：串联识别、检索与购买判断。", kind: "ai" },
+    { label: "市场与竞品研究", detail: "腾讯调研：比较品牌矩阵与内容方向。", kind: "research" },
+  ] : [
+    { label: "Content strategy", detail: "DW & CAA: supported briefs, headlines and reading rhythm.", kind: "strategy" },
+    { label: "Creator & platform operations", detail: "Refrear: creator selection, briefs and post-campaign data.", kind: "operations" },
+    { label: "Data review", detail: "DW monthly review: clicks, engagement and growth trends.", kind: "data" },
+    { label: "Information architecture", detail: "Graduate workbook: roles, applications, resumes and review.", kind: "architecture" },
+    { label: "AI tools & workflows", detail: "Can Buy Lah: recognition, retrieval and purchase judgement.", kind: "ai" },
+    { label: "Market & competitor research", detail: "Tencent research: media matrices and content direction.", kind: "research" },
+  ];
+  const movePhoto = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!window.matchMedia("(pointer: fine)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty("--photo-x", `${((event.clientX - bounds.left) / bounds.width - .5) * 12}px`);
+    event.currentTarget.style.setProperty("--photo-y", `${((event.clientY - bounds.top) / bounds.height - .5) * 12}px`);
+  };
+  const resetPhoto = (event: React.MouseEvent<HTMLDivElement>) => { event.currentTarget.style.removeProperty("--photo-x"); event.currentTarget.style.removeProperty("--photo-y"); };
+  return <main>
+    <section className="cover-screen" aria-label="Sihan Wang portfolio cover"><img src={img("portfolio-cover-v2.png")} alt="Sihan Wang portfolio cover" /><p>个人作品集</p><a className="cover-explore" href="#work">{zh ? "浏览作品" : "Explore selected work"}<span aria-hidden="true">↓</span></a></section>
+    <WorkShowcase locale={locale} />
+    <section id="about" className="home-about"><span className="about-stamp" aria-hidden="true">SIN · LUCERNE<br />01°17′N / 8°18′E</span><span className="about-route" aria-hidden="true" /><div className="home-about-layout"><div className="home-about-copy about-card" data-reveal><MediterraneanBoat /><p className="eyebrow" data-about-part>Sihan Wang 王思涵 · Singapore</p><h1 data-about-part>About Sihan</h1><div className="about-prose" data-about-part><p className="home-lead">{zh ? "Hi，我是思涵。目前就读于南洋理工大学黄金辉信息与传播学院知识管理硕士，本科毕业于武汉理工大学网络与新媒体专业。" : "Hi, I’m Sihan. I am currently pursuing an MSc in Knowledge Management at NTU’s Wee Kim Wee School of Communication and Information, after completing a degree in Network and New Media at Wuhan University of Technology."}</p><p>{zh ? "我的实习经历主要聚焦内容运营、达人与用户运营、数据复盘和行业研究：从多账号内容规划与 KOL 筛选，到新媒体矩阵调研、跨部门项目推进，我习惯把复杂信息整理成清晰的下一步。学习和实习让我不断积累新的能力；我始终相信，认真走的每一步都会让人更接近想成为的自己。" : "My internship experience centres on content operations, creator and user operations, data review and industry research. From multi-account content planning and KOL selection to media-matrix research and cross-functional project delivery, I enjoy turning complex information into a clearer next step. Learning and practice keep adding to my toolkit, and I believe steady effort gets me closer to the person I want to become."}</p></div></div><div className="home-photo" data-reveal onMouseMove={movePhoto} onMouseLeave={resetPhoto}><span className="photo-paper photo-paper-back" aria-hidden="true" /><span className="photo-paper photo-paper-front" aria-hidden="true" /><img src={img("sihan-portrait-lucerne.jpg")} alt="Sihan Wang in Lucerne" /><span className="photo-index" aria-hidden="true">01 / PERSONAL ARCHIVE</span><span>Lucerne, Switzerland</span></div></div><section className="home-skills"><p className="eyebrow">{zh ? "能力方向" : "Capabilities"}</p><div>{skills.map((skill, index) => <button type="button" className="skill-card" key={skill.label}><span className="skill-order">0{index + 1}</span><SkillIcon kind={skill.kind} /><b>{skill.label}</b><p>{skill.detail}</p></button>)}</div></section></section>
+    <section id="experience" className="page-shell experience-page home-experience"><ExperienceContent locale={locale} /></section>
+  </main>;
 }
 
 // Kept temporarily as the concise record used during content review; the archive below is the rendered version.
@@ -264,6 +298,7 @@ type EducationRecord = {
   note: Record<Locale, string>;
   courses: string[];
   capabilities: Record<Locale, string[]>;
+  details: { title: Record<Locale, string>; text: Record<Locale, string>; items: Record<Locale, string[]>; media?: { src: string; label: Record<Locale, string> }[] }[];
 };
 
 const educationRecords: EducationRecord[] = [
@@ -271,19 +306,28 @@ const educationRecords: EducationRecord[] = [
     period: "2025.08—2027.01",
     school: { zh: "南洋理工大学", en: "Nanyang Technological University" },
     degree: { zh: "知识管理硕士 · GPA 4.1 / 5.0", en: "MSc Knowledge Management · GPA 4.1 / 5.0" },
-    lead: { zh: "把信息、技术与组织问题转化为可执行的知识系统。", en: "Turning information, technology and organisational questions into usable knowledge systems." },
+    lead: { zh: "课程涉及知识管理、信息组织、商业情报和数字化实践。", en: "Coursework spans knowledge management, information organisation, business intelligence and digital practice." },
     note: { zh: "已修 8 门核心与选修课程，以课程方法反哺研究、内容与数字化实践。", en: "Eight completed core and elective courses that inform research, content and digital practice." },
-    courses: ["KM6301 Foundations of Knowledge Management", "KM6302 Knowledge Management Practices & Implementation", "KM6303 Information & Knowledge Assets", "KM6304 Knowledge Management Strategies & Policies", "KM6305 Knowledge Management Technologies", "KM6307 Organisation of Knowledge", "KM6308 Business Intelligence", "KM6315 Information Entrepreneurship"],
+    courses: ["知识管理基础", "实践与实施", "信息与知识资产", "策略与政策", "知识管理技术", "知识组织", "商业情报", "信息创业"],
     capabilities: { zh: ["用知识流程、组织资产与用户场景拆解复杂问题", "把信息架构、分类法与检索逻辑落到内容和工作台", "通过商业情报、竞品和市场信号支持判断", "从策略、技术与实施三条线组织数字化项目"], en: ["Frame complex problems through knowledge flows, organisational assets and user contexts", "Apply information architecture, taxonomy and retrieval logic to content and workspaces", "Use business intelligence, competitor and market signals to support decisions", "Connect strategy, technology and implementation in digital projects"] },
+    details: [
+      { title: { zh: "课程主题", en: "Course themes" }, text: { zh: "已修课程围绕知识如何被整理、共享、检索与用于组织决策展开。", en: "Completed coursework examines how knowledge is organised, shared, retrieved and used in organisations." }, items: { zh: ["知识管理", "实践实施", "信息资产", "策略", "技术", "知识组织", "商业情报", "信息创业"], en: ["Knowledge management", "Implementation", "Information assets", "Strategy", "Technology", "Knowledge organisation", "Business intelligence", "Information entrepreneurship"] } },
+      { title: { zh: "国际学习", en: "International learning" }, text: { zh: "通过 Communication and Knowledge Management 课程赴 USI Università della Svizzera italiana（Lugano）访学，学习跨文化交流与传播，并在教师带领下了解当地社会与文化。", en: "Visited USI Università della Svizzera italiana in Lugano through Communication and Knowledge Management, studying intercultural communication while learning about local society and culture." }, items: { zh: ["优秀学生 2,000 新币津贴", "跨文化交流与传播"], en: ["SGD 2,000 outstanding-student allowance", "Intercultural communication"] } },
+      { title: { zh: "Critical Inquiry", en: "Critical Inquiry" }, text: { zh: "以 A 完成团队研究并担任组长，比较 9 家全球时尚与运动服饰企业的数字化转型。", en: "Led an A-grade team study comparing the digital transformation of nine global fashion and sportswear companies." }, items: { zh: ["组长", "5 维数字化转型能力矩阵", "公开资料比较研究"], en: ["Group leader", "Five-dimension digital-transformation matrix", "Public-source comparative research"] } },
+    ],
   },
   {
     period: "2021.09—2025.07",
     school: { zh: "武汉理工大学", en: "Wuhan University of Technology" },
     degree: { zh: "网络与新媒体学士", en: "BA Network and New Media" },
-    lead: { zh: "从内容生产到平台传播，建立面向用户的数字传播基础。", en: "Building a user-centred foundation from content production to platform communication." },
+    lead: { zh: "课程训练覆盖新闻、数字出版、平台内容与基础数据处理。", en: "Coursework covered journalism, digital publishing, platform content and foundational data handling." },
     note: { zh: "课程训练覆盖新闻、出版、平台传播与基础技术，把内容判断与可执行表达放在一起。", en: "Coursework combined journalism, publishing, platform communication and foundational technology." },
     courses: ["网络与新媒体", "新闻学", "数字出版", "新媒体内容生产", "用户与平台传播", "Python 基础与数据处理"],
     capabilities: { zh: ["围绕受众与平台语境组织选题、文案和内容结构", "将业务信息转译为清晰、适合阅读的图文表达", "理解内容生产、数字出版与分发之间的协作链路", "用基础 Python 与数据处理支持资料整理和研究"], en: ["Shape topics, copy and structure for audiences and platform contexts", "Translate business information into clear, readable editorial content", "Understand the workflow across content production, digital publishing and distribution", "Use foundational Python and data handling for research and information organisation"] },
+    details: [
+      { title: { zh: "课程与方法", en: "Coursework & methods" }, text: { zh: "把新闻、出版与平台内容放在同一套传播训练里，也接触 Python 与基础数据处理。", en: "Combined journalism, publishing and platform content with foundational Python and data-handling practice." }, items: { zh: ["网络与新媒体", "新闻学", "数字出版", "内容生产", "平台传播", "Python 与数据处理"], en: ["Network & new media", "Journalism", "Digital publishing", "Content production", "Platform communication", "Python & data handling"] } },
+      { title: { zh: "校园经历", en: "Campus experience" }, text: { zh: "担任学习委员，并在武汉理工大学新媒体运营中心参与校园内容策划与制作。", en: "Served as class study representative and contributed to campus-content planning and production at WUT's New Media Operations Centre." }, items: { zh: ["校区地铁出行 B 站视频 · 1.1 万播放", "8 条抖音内容 · 平均约 1,000 点赞"], en: ["Campus metro-guide Bilibili video · 11,000 views", "8 Douyin videos · about 1,000 likes on average"] }, media: [{ src: "wut-douyin-subway.png", label: { zh: "出镜与制作", en: "On camera & production" } }, { src: "wut-douyin-classroom.png", label: { zh: "出镜与制作", en: "On camera & production" } }, { src: "wut-douyin-holiday.png", label: { zh: "创意策划", en: "Creative planning" } }, { src: "wut-douyin-crest.png", label: { zh: "创意策划", en: "Creative planning" } }] },
+    ],
   },
 ];
 
@@ -313,7 +357,7 @@ const internshipRecords: InternshipRecord[] = [
     period: "2025.04—06",
     company: { zh: "Allison+Partners", en: "Allison+Partners" },
     role: { zh: "企业传播部公关实习生", en: "Corporate Communications Intern" },
-    lead: { zh: "在内容、达人与数据之间建立可复用的传播工作链路。", en: "Building reusable communication workflows across content, creators and data." },
+    lead: { zh: "负责达人筛选、Brief 撰写、内容支持与投后数据回收。", en: "Supported creator selection, brief writing, editorial work and post-campaign data collection." },
     sections: [
       { label: { zh: "达人与复盘", en: "Creators & review" }, text: { zh: "为美瞳品牌按“画像—调性—互动/成本”筛选 200 余名 KOL，整理候选、沟通与投后数据回收。", en: "Screened 200+ KOLs for a contact-lens brand by audience, tone, engagement and cost; organised recommendations, outreach and post-campaign data." } },
       { label: { zh: "内容运营", en: "Content operations" }, text: { zh: "参与 DW 三个小红书账号的趋势研究、选题、Brief、文案、发布与月度复盘，并与公众号 Campaign 对齐。", en: "Contributed trend research, topics, briefs, copy, publishing and monthly review for three DW Xiaohongshu accounts, aligned with WeChat campaigns." } },
@@ -325,7 +369,7 @@ const internshipRecords: InternshipRecord[] = [
     period: "2024.01—03",
     company: { zh: "腾讯 CSIG 智慧出行", en: "Tencent CSIG Smart Mobility" },
     role: { zh: "行业运营实习生", en: "Industry Operations Intern" },
-    lead: { zh: "从用户互动方案到汽车新媒体矩阵研究，支持可讨论、可落地的项目判断。", en: "Supporting practical project decisions through interactive-experience design and automotive media research." },
+    lead: { zh: "参与车展互动方案梳理和汽车新媒体矩阵调研。", en: "Contributed to auto-show interaction planning and automotive media-matrix research." },
     sections: [
       { label: { zh: "体验方案", en: "Experience design" }, text: { zh: "围绕车展 AI Partner，迭代约 30 道互动题、标签文案与场景匹配逻辑；方案获项目团队采纳并继续推进。", en: "Iterated roughly 30 interactive questions, tag copy and scenario-matching logic for an AI Partner auto-show experience; the approach was adopted for continued work." } },
       { label: { zh: "矩阵研究", en: "Media-matrix research" }, text: { zh: "调研 10 余家国内外汽车品牌，覆盖公域、私域、内容类型、近 30 天表现及用户触达方式，形成统一比较框架。", en: "Researched 10+ Chinese and global automotive brands across public/private channels, content types, recent performance and audience reach in one comparison framework." } },
@@ -337,7 +381,7 @@ const internshipRecords: InternshipRecord[] = [
     period: "2023.06—08",
     company: { zh: "同方知网", en: "CNKI" },
     role: { zh: "市场专员实习生", en: "Marketing Intern" },
-    lead: { zh: "用研究、会议记录与公众号内容生产，支持市场团队的对外沟通。", en: "Supporting market communication through research, meeting records and WeChat editorial production." },
+    lead: { zh: "通过市场研究、会议记录与公众号内容，配合团队内外部沟通。", en: "Supported internal and external team communication through market research, meeting records and WeChat content." },
     sections: [
       { label: { zh: "市场研究", en: "Market research" }, text: { zh: "每周检索教育数字化、高校及政教相关政策和行业案例，实习期累计收集约 100—200 条信息并完成 3 期市场简报。", en: "Tracked education-digitalisation policy, higher-education developments and cases weekly; collected about 100–200 items and completed three market briefs." } },
       { label: { zh: "客户支持", en: "Client support" }, text: { zh: "参与 6 次高校客户会议，整理客户需求、产品反馈、责任人和后续待办，沉淀为会议纪要。", en: "Supported six university client meetings, recording needs, product feedback, owners and next steps as reusable meeting notes." } },
@@ -357,10 +401,10 @@ function EducationJournal({ locale }: { locale: Locale }) {
         <span className="education-school">{record.school[locale]}</span>
         <span className="education-degree">{record.degree[locale]}</span>
         <span className="education-lead">{record.lead[locale]}</span>
-        <span className="education-more">{expanded ? (locale === "zh" ? "收起课程笔记" : "Close course note") : (locale === "zh" ? "展开课程笔记" : "Open course note")} <i aria-hidden="true">↓</i></span>
+        <span className="education-more">{expanded ? (locale === "zh" ? "收起详情" : "Close details") : (locale === "zh" ? "展开详情" : "Open details")} <i aria-hidden="true">↓</i></span>
       </button>
       <div className="education-panel" aria-hidden={!expanded}>
-        <div className="education-panel-inner"><p>{record.note[locale]}</p><div className="course-tape"><span>{locale === "zh" ? "已修课程" : "Coursework"}</span><ul>{record.courses.map((course) => <li key={course}>{course}</li>)}</ul></div><div className="education-capabilities"><span>{locale === "zh" ? "由此获得" : "Built through this"}</span><ul>{record.capabilities[locale].map((capability) => <li key={capability}>{capability}</li>)}</ul></div></div>
+        <div className="education-panel-inner education-detail-grid">{record.details.map((detail) => <section className="education-detail" key={detail.title.en}><p>{detail.title[locale]}</p><span>{detail.text[locale]}</span><ul>{detail.items[locale].map((item) => <li key={item}>{item}</li>)}</ul>{detail.media && <div className="education-media-strip">{detail.media.map((media) => <figure key={media.src}><img src={img(media.src)} alt={media.label[locale]} loading="lazy" /><figcaption>{media.label[locale]}</figcaption></figure>)}</div>}</section>)}</div>
       </div>
     </article>;
   })}</div>;
@@ -376,7 +420,7 @@ function InternshipArchive({ locale }: { locale: Locale }) {
 
 function ExperienceContent({ locale }: { locale: Locale }) {
   const zh = locale === "zh";
-  return <><section className="page-heading"><p className="eyebrow">Profile / Notebook</p><h1>{zh ? "教育与实习经历" : "Education & internship experience"}</h1><p className="experience-intro">{zh ? "点开课程笔记，或进入一段经历的工作档案。" : "Open a course note, or enter the field archive behind an internship."}</p></section><section className="experience-group education-group"><div className="experience-group-heading"><p className="eyebrow">01 / {zh ? "教育经历" : "Education"}</p><span>{zh ? "像阅读一篇课程推文" : "Read each as a course note"}</span></div><EducationJournal locale={locale} /></section><section className="experience-group internship-group"><div className="experience-group-heading"><p className="eyebrow">02 / {zh ? "实习经历" : "Internships"}</p><span>{zh ? "点击进入工作档案" : "Open a field archive"}</span></div><InternshipArchive locale={locale} /></section></>;
+  return <><section className="page-heading"><p className="eyebrow">Profile / Notebook</p><h1>{zh ? "教育与实习经历" : "Education & internship experience"}</h1></section><section className="experience-group education-group"><div className="experience-group-heading"><p className="eyebrow">01 / {zh ? "教育经历" : "Education"}</p></div><EducationJournal locale={locale} /></section><section className="experience-group internship-group"><div className="experience-group-heading"><p className="eyebrow">02 / {zh ? "实习经历" : "Internships"}</p><span>{zh ? "点击进入工作档案" : "Open a field archive"}</span></div><InternshipArchive locale={locale} /></section></>;
 }
 
 function Experience({ locale }: { locale: Locale }) {
